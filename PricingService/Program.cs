@@ -56,6 +56,7 @@ public class Program
         }
 
         app.UseRouting();
+        app.UseDiscoveryClient();
         app.MapControllers();
 
         app.Run();
