@@ -11,4 +11,10 @@ public static class RestClientsInstaller
         services.AddSingleton(typeof(IPricingService), typeof(PricingService));
         return services;
     }
+
+    public static IServiceCollection AddPaymentRestClient(this IServiceCollection services)
+    {
+        services.AddSingleton(typeof(IPaymentClient), typeof(PaymentClient));
+        return services;
+    }
 }

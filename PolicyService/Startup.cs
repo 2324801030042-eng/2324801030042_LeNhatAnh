@@ -27,6 +27,7 @@ public class Startup
             .AddNewtonsoftJson();
         services.AddMediatR(opts => opts.RegisterServicesFromAssemblyContaining<Startup>());
         services.AddPricingRestClient();
+services.AddPaymentRestClient();
         services.AddNHibernate(Configuration.GetConnectionString("DefaultConnection"));
         services.AddRabbitListeners();
         services.AddSwaggerGen();

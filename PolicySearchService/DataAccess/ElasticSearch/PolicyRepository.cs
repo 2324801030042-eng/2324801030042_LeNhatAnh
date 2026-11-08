@@ -37,6 +37,15 @@ public class PolicyRepository : IPolicyRepository
                             )
                         ));
 
-        return result.Documents.ToList();
+        return result.Documents?.ToList() ?? new List<Policy>();
+    }
+
+    public async Task<List<Policy>> FindAll()
+    {
+        var result = await elasticClient
+            .SearchAsync<Policy>(s => s.From(0).Size(20))
+            ?? new SearchResponse<Policy>();
+
+        return result.Documents?.ToList() ?? new List<Policy>();
     }
 }

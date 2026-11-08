@@ -20,7 +20,16 @@ public class FindPolicyHandler : IRequestHandler<FindPolicyQuery, FindPolicyResu
 
     public async Task<FindPolicyResult> Handle(FindPolicyQuery request, CancellationToken cancellationToken)
     {
-        var searchResults = await policis.Find(request.QueryText);
+        var queryText = request.QueryText?.Trim();
+
+        // Empty search returns all indexed policies (PoliciesView loads without a query)
+        if (string.IsNullOrEmpty(queryText))
+        {
+            var allResults = await policis.FindAll();
+            return FindPolicyResult(allResults);
+        }
+
+        var searchResults = await policis.Find(queryText);
 
         return FindPolicyResult(searchResults);
     }
