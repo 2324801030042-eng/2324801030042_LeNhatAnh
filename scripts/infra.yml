@@ -13,7 +13,7 @@ services:
     image: postgres
     container_name: postgres
     volumes:
-      - /tmp/data/postgresql:/var/lib/postgresql/data
+      - /tmp/data/postgresql-new:/var/lib/postgresql/data
     ports:
       - 5432:5432
     environment:
