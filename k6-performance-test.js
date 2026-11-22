@@ -4,21 +4,24 @@ import { Counter, Rate, Trend } from 'k6/metrics';
 
 // ============================================================================
 // K6 PERFORMANCE TEST SCRIPT — BTH11: KIỂM CHỨNG HIỆU SUẤT KIẾN TRÚC PHẦN MỀM
-// Hệ thống: InsuranceAgency Microservices (.NET 8)
+// Hệ thống: InsuranceAgency Microservices (.NET 8) + Ocelot API Gateway
 // Công cụ: Grafana k6
 // ============================================================================
 
 // --- Test Run ID (mã định danh lần kiểm thử) ---
-// Sinh tự động từ timestamp, gắn kèm mọi request để đối chiếu log backend.
 export const TEST_RUN_ID = `__TEST_RUN_ID_${Date.now()}__`;
 
-// Cấu hình target host (mặc định chạy qua API Gateway Ocelot port 8099).
-// Có thể ghi đè bằng ENV: export BASE_URL=http://localhost:8099
-// Hoặc test trực tiếp service: export BASE_URL=http://localhost:5050
+// Base URL: API Gateway Ocelot (port 8099)
+// Auth URL: AuthService trực tiếp (port 6060) — dùng để lấy JWT token
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8099';
+const BASE_AUTH = __ENV.AUTH_URL || 'http://localhost:6060';
+
+// Tài khoản test (không nhạy cảm, từ DEMO.md)
+const AGENT_LOGIN = 'jimmy.solid';
+const AGENT_PASSWORD = 'secret';
 
 // ============================================================================
-// Custom metrics (được xuất trong JSON summary)
+// Custom metrics
 // ============================================================================
 const createQuoteP95 = new Trend('create_quote_p95');
 const convertPolicyP95 = new Trend('convert_policy_p95');
@@ -57,15 +60,46 @@ const POLICY_PAYLOAD = JSON.stringify({
   },
 });
 
-const AGENT_LOGIN = 'jimmy.solid';
+// ============================================================================
+// Setup — đăng nhập AuthService để lấy JWT Token (chạy 1 lần trước tất cả VUs)
+// ============================================================================
+export function setup() {
+  const res = http.post(`${BASE_AUTH}/api/user`, JSON.stringify({
+    Login: AGENT_LOGIN,
+    Password: AGENT_PASSWORD,
+  }), {
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (res.status !== 200) {
+    throw new Error(`AuthService login failed (${res.status}): ${res.body}`);
+  }
+
+  const token = res.json('Token');
+  if (!token) {
+    throw new Error(`AuthService did not return Token. Body: ${res.body}`);
+  }
+
+  return { token };
+}
+
+// Helper: headers kèm Authorization Bearer token
+function authHeaders(data) {
+  return {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${data.token}`,
+      'X-Test-Run-Id': TEST_RUN_ID,
+    },
+  };
+}
 
 // ============================================================================
-// Options — các scenario chạy riêng theo mức tải (VUs)
+// Options — 3 scenario chạy song song, mỗi scenario 1 chức năng
 // Chạy ví dụ: k6 run --env VUS=10 --env DURATION=30s k6-performance-test.js
 // ============================================================================
 export const options = {
   scenarios: {
-    // Chức năng 1: Tạo đề nghị & tính phí
     create_quote: {
       executor: 'constant-vus',
       vus: parseInt(__ENV.VUS) || 1,
@@ -73,7 +107,6 @@ export const options = {
       exec: 'createQuoteAndCalculatePremium',
       tags: { test_type: 'create_quote' },
     },
-    // Chức năng 2: Chuyển đề nghị thành hợp đồng
     convert_policy: {
       executor: 'constant-vus',
       vus: parseInt(__ENV.VUS) || 1,
@@ -81,7 +114,6 @@ export const options = {
       exec: 'convertQuoteToPolicy',
       tags: { test_type: 'convert_policy' },
     },
-    // Chức năng 3: Tìm kiếm đề nghị/hợp đồng
     search: {
       executor: 'constant-vus',
       vus: parseInt(__ENV.VUS) || 1,
@@ -91,7 +123,6 @@ export const options = {
     },
   },
   thresholds: {
-    // Ngưỡng tham chiếu (đề bài: p95 ≤ 2s/3s, Error Rate < 1%)
     'create_quote_p95': ['p(95) <= 2000'],
     'create_quote_error_rate': ['rate < 0.01'],
     'convert_policy_p95': ['p(95) <= 3000'],
@@ -103,18 +134,12 @@ export const options = {
 
 // ============================================================================
 // Chức năng 1 — Tạo đề nghị bảo hiểm và tính phí (Create Quote & Calculate Premium)
+// POST /api/Offer  (qua Gateway → PolicyService /api/Offers)
 // ============================================================================
-export function createQuoteAndCalculatePremium() {
+export function createQuoteAndCalculatePremium(data) {
   const url = `${BASE_URL}/api/Offer`;
 
-  const res = http.post(url, QUOTE_PAYLOAD, {
-    headers: {
-      'Content-Type': 'application/json',
-      'AgentLogin': AGENT_LOGIN,
-      'X-Test-Run-Id': TEST_RUN_ID,
-    },
-    tags: { name: 'create_quote', test_run_id: TEST_RUN_ID },
-  });
+  const res = http.post(url, QUOTE_PAYLOAD, authHeaders(data));
 
   const success = check(res, {
     'create_quote status is 200/201': (r) => r.status === 200 || r.status === 201,
@@ -130,18 +155,12 @@ export function createQuoteAndCalculatePremium() {
 
 // ============================================================================
 // Chức năng 2 — Chuyển đề nghị thành hợp đồng (Convert Quote to Policy)
+// POST /api/Policy (qua Gateway → PolicyService /api/Policies)
 // ============================================================================
-export function convertQuoteToPolicy() {
+export function convertQuoteToPolicy(data) {
   const url = `${BASE_URL}/api/Policy`;
 
-  const res = http.post(url, POLICY_PAYLOAD, {
-    headers: {
-      'Content-Type': 'application/json',
-      'AgentLogin': AGENT_LOGIN,
-      'X-Test-Run-Id': TEST_RUN_ID,
-    },
-    tags: { name: 'convert_policy', test_run_id: TEST_RUN_ID },
-  });
+  const res = http.post(url, POLICY_PAYLOAD, authHeaders(data));
 
   const success = check(res, {
     'convert_policy status is 200/201': (r) => r.status === 200 || r.status === 201,
@@ -157,15 +176,16 @@ export function convertQuoteToPolicy() {
 
 // ============================================================================
 // Chức năng 3 — Tìm kiếm đề nghị/hợp đồng (Search Quotes & Policies)
+// GET /api/PolicySearch?q=... (qua Gateway → PolicySearchService /api/PolicySearch)
 // ============================================================================
-export function searchQuotesAndPolicies() {
+export function searchQuotesAndPolicies(data) {
   const url = `${BASE_URL}/api/PolicySearch?q=Nhat`;
 
   const res = http.get(url, {
     headers: {
+      'Authorization': `Bearer ${data.token}`,
       'X-Test-Run-Id': TEST_RUN_ID,
     },
-    tags: { name: 'search', test_run_id: TEST_RUN_ID },
   });
 
   const success = check(res, {
@@ -181,11 +201,12 @@ export function searchQuotesAndPolicies() {
 }
 
 // ============================================================================
-// Hàm teardown — in Test Run ID ra summary
+// Teardown — in Test Run ID
 // ============================================================================
 export function teardown(data) {
   console.log(`\n================================================================`);
   console.log(`TEST RUN ID: ${TEST_RUN_ID}`);
   console.log(`BASE URL: ${BASE_URL}`);
+  console.log(`AUTH URL: ${BASE_AUTH}`);
   console.log(`================================================================\n`);
 }
