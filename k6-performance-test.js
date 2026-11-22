@@ -75,7 +75,7 @@ export function setup() {
     throw new Error(`AuthService login failed (${res.status}): ${res.body}`);
   }
 
-  const token = res.json('Token');
+  const token = res.json('token');
   if (!token) {
     throw new Error(`AuthService did not return Token. Body: ${res.body}`);
   }
