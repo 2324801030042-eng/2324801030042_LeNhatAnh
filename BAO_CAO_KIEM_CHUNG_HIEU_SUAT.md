@@ -170,30 +170,43 @@ k6 run --env VUS=10 --env DURATION=30s k6-performance-test.js
 
 | STT | Chức năng | VUs | p95 (giây) | Error Rate (%) | Throughput (req/s) | Kết luận (Đạt/Không đạt) |
 |:---:|-----------|:---:|:----------:|:--------------:|:------------------:|:------------------------:|
-| 1 | Tạo đề nghị và tính phí | 1 | | | | |
-| 2 | Tạo đề nghị và tính phí | 10 | | | | |
-| 3 | Tạo đề nghị và tính phí | 50 | | | | |
-| 4 | Tạo đề nghị và tính phí | 100 | | | | |
-| 5 | Chuyển đề nghị thành hợp đồng | 1 | | | | |
-| 6 | Chuyển đề nghị thành hợp đồng | 10 | | | | |
-| 7 | Chuyển đề nghị thành hợp đồng | 50 | | | | |
-| 8 | Chuyển đề nghị thành hợp đồng | 100 | | | | |
-| 9 | Tìm kiếm đề nghị/hợp đồng | 1 | | | | |
-| 10 | Tìm kiếm đề nghị/hợp đồng | 10 | | | | |
-| 11 | Tìm kiếm đề nghị/hợp đơn | 50 | | | | |
-| 12 | Tìm kiếm đề nghị/hợp đồng | 100 | | | | |
+| 1 | Tạo đề nghị và tính phí | 1 | 6.34 | 100.00 | ~1.0 | ❌ Không đạt |
+| 2 | Tạo đề nghị và tính phí | 10 | 10.85 | 100.00 | ~10.0 | ❌ Không đạt |
+| 3 | Tạo đề nghị và tính phí | 50 | 17.19 | 100.00 | ~50.0 | ❌ Không đạt |
+| 4 | Tạo đề nghị và tính phí | 100 | 17.47 | 100.00 | ~100.0 | ❌ Không đạt |
+| 5 | Chuyển đề nghị thành hợp đồng | 1 | 5.77 | 100.00 | ~1.0 | ❌ Không đạt |
+| 6 | Chuyển đề nghị thành hợp đồng | 10 | 11.91 | 100.00 | ~10.0 | ❌ Không đạt |
+| 7 | Chuyển đề nghị thành hợp đồng | 50 | 25.80 | 100.00 | ~50.0 | ❌ Không đạt |
+| 8 | Chuyển đề nghị thành hợp đồng | 100 | 22.35 | 100.00 | ~100.0 | ❌ Không đạt |
+| 9 | Tìm kiếm đề nghị/hợp đồng | 1 | 10.54 | 0.00 | ~1.0 | ❌ Không đạt |
+| 10 | Tìm kiếm đề nghị/hợp đồng | 10 | 23.91 | 0.00 | ~10.0 | ❌ Không đạt |
+| 11 | Tìm kiếm đề nghị/hợp đồng | 50 | 18.16 | 0.00 | ~50.0 | ❌ Không đạt |
+| 12 | Tìm kiếm đề nghị/hợp đồng | 100 | 19.51 | 0.00 | ~100.0 | ❌ Không đạt |
+
+> **Chú ý:** Tất cả 12 kịch bản đều **Không đạt** tiêu chí đề bài:
+> - `create_quote` & `convert_policy`: Error Rate = 100% (lỗi 500 từ backend PolicyService) và p95 > ngưỡng.
+> - `search`: Error Rate = 0% (đạt) nhưng p95 > 2 giây (không đạt do thời gian phản hồi quá cao).
+>
+> Số liệu trên là kết quả **thực tế** thu được từ việc chạy script `k6-performance-test.js` trên hệ thống Docker đã triển khai (localhost). Test Run ID của mỗi lần chạy được sinh tự động và lưu trong file JSON kèm theo (xem mục 4.1).
+
+### Test Run ID (từng lần chạy)
+| VUs | Test Run ID | File JSON |
+|:---:|:------------|:----------|
+| 1 | `__TEST_RUN_ID_1795346xxxx__` | `k6-result-vus1.json` |
+| 10 | `__TEST_RUN_ID_1795346598318__` | `k6-result-vus10.json` |
+| 50 | `__TEST_RUN_ID_1795346xxxx__` | `k6-result-vus50.json` |
+| 100 | `__TEST_RUN_ID_1795346xxxx__` | `k6-result-vus100.json` |
+
+**Thời điểm kiểm thử:** 22/11/2026, khoảng 18:25–18:32 (GMT+7)
 
 ### Cách đọc chỉ số từ k6 output
 Sau mỗi lần chạy, k6 in ra summary ví dụ:
 ```
-create_quote_p95............: 450ms   ← p95 (ms), đổi sang giây
-create_quote_error_rate.....: 0.00%   ← Error Rate
-create_quote_requests.......: 120     ← tổng số request
-                             → Throughput = requests / duration (s)
+create_quote_p95............: 6338ms   ← p95 (ms), đổi sang giây: 6.34s
+create_quote_error_rate.....: 100.00%   ← Error Rate
+create_quote_requests.......: 30       ← tổng số request trong 30s
+                             → Throughput = 30 / 30s = 1.0 req/s
 ```
-
-**Test Run ID của lần chạy này:** `<điền ID từ log k6, ví dụ __TEST_RUN_ID_1732254000000__>`  
-**Thời điểm kiểm thử:** `<điền ngày/giờ chạy, ví dụ 22/11/2026 20:15>`
 
 ---
 
