@@ -21,3 +21,19 @@
 4. Hạ tầng Docker (RabbitMQ/Elasticsearch/Eureka/Postgres container):
    máy này chưa có WSL2 nên Docker daemon không chạy được.
    Trên máy có Docker Desktop + WSL2: `cd scripts && docker compose -f infra.yml up -d`.
+
+---
+
+## BTH11 — Kiểm chứng hiệu suất kiến trúc phần mềm (hạn 23h59 22/11/2026)
+
+- [x] Script kiểm thử: `k6-performance-test.js` (Grafana k6, 3 chức năng × 4 mức VUs: 1/10/50/100, Test Run ID gắn kèm)
+- [x] Báo cáo mẫu: `BAO_CAO_KIEM_CHUNG_HIEU_SUAT.md` (các mục 1–7, chờ điền số liệu thực từ k6 output)
+- [x] Hướng dẫn chạy: `HUONG_DAN_CHAY_KIEM_THU_HIEU_SUAT.md`
+- [ ] Chạy k6 thu thập kết quả thực (12 kịch bản), xuất file JSON gốc (`k6 run --out json=...`)
+- [ ] Thu thập log backend (`docker compose logs ...`) đối chiếu Test Run ID
+- [ ] Điền bảng kết quả 12 kịch bản vào báo cáo, xuất ra PDF
+- [ ] Nộp 4 sản phẩm lên eLearning: Báo cáo PDF, script .js, file JSON gốc, log hệ thống
+
+## Lưu ý thêm (cần tài khoản GitHub của bạn)
+- Thêm `caotxuan@gmail.com` làm collaborator vào repo GitHub
+  (Settings → Collaborators → Add people) — yêu cầu của BTH4 P2.
