@@ -4,21 +4,17 @@ import { Counter, Rate, Trend } from 'k6/metrics';
 
 // ============================================================================
 // K6 PERFORMANCE TEST SCRIPT — BTH11: KIỂM CHỨNG HIỆU SUẤT KIẾN TRÚC PHẦN MỀM
-// Hệ thống: InsuranceAgency Microservices (.NET 8) + Ocelot API Gateway
+// Hệ thống: InsuranceAgency Microservices (.NET 8)
 // Công cụ: Grafana k6
 // ============================================================================
 
 // --- Test Run ID (mã định danh lần kiểm thử) ---
 export const TEST_RUN_ID = `__TEST_RUN_ID_${Date.now()}__`;
 
-// Base URL: API Gateway Ocelot (port 8099)
-// Auth URL: AuthService trực tiếp (port 6060) — dùng để lấy JWT token
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:8099';
-const BASE_AUTH = __ENV.AUTH_URL || 'http://localhost:6060';
-
-// Tài khoản test (không nhạy cảm, từ DEMO.md)
-const AGENT_LOGIN = 'jimmy.solid';
-const AGENT_PASSWORD = 'secret';
+// Gọi trực tiếp microservice (bypass Ocelot Gateway do vấn đề service discovery)
+// PolicyService: port 5050 | PolicySearchService: port 5065
+const POLICY_URL = __ENV.POLICY_URL || 'http://localhost:5050';
+const SEARCH_URL = __ENV.SEARCH_URL || 'http://localhost:5065';
 
 // ============================================================================
 // Custom metrics
@@ -61,42 +57,8 @@ const POLICY_PAYLOAD = JSON.stringify({
 });
 
 // ============================================================================
-// Setup — đăng nhập AuthService để lấy JWT Token (chạy 1 lần trước tất cả VUs)
-// ============================================================================
-export function setup() {
-  const res = http.post(`${BASE_AUTH}/api/user`, JSON.stringify({
-    Login: AGENT_LOGIN,
-    Password: AGENT_PASSWORD,
-  }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
-
-  if (res.status !== 200) {
-    throw new Error(`AuthService login failed (${res.status}): ${res.body}`);
-  }
-
-  const token = res.json('token');
-  if (!token) {
-    throw new Error(`AuthService did not return Token. Body: ${res.body}`);
-  }
-
-  return { token };
-}
-
-// Helper: headers kèm Authorization Bearer token
-function authHeaders(data) {
-  return {
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${data.token}`,
-      'X-Test-Run-Id': TEST_RUN_ID,
-    },
-  };
-}
-
-// ============================================================================
-// Options — 3 scenario chạy song song, mỗi scenario 1 chức năng
-// Chạy ví dụ: k6 run --env VUS=10 --env DURATION=30s k6-performance-test.js
+// Options — 3 scenario chạy song song
+// Chạy: k6 run --env VUS=10 --env DURATION=30s k6-performance-test.js
 // ============================================================================
 export const options = {
   scenarios: {
@@ -134,12 +96,18 @@ export const options = {
 
 // ============================================================================
 // Chức năng 1 — Tạo đề nghị bảo hiểm và tính phí (Create Quote & Calculate Premium)
-// POST /api/Offer  (qua Gateway → PolicyService /api/Offers)
+// POST /api/Offer (PolicyService :5050)
 // ============================================================================
-export function createQuoteAndCalculatePremium(data) {
-  const url = `${BASE_URL}/api/Offer`;
+export function createQuoteAndCalculatePremium() {
+  const url = `${POLICY_URL}/api/Offer`;
 
-  const res = http.post(url, QUOTE_PAYLOAD, authHeaders(data));
+  const res = http.post(url, QUOTE_PAYLOAD, {
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Test-Run-Id': TEST_RUN_ID,
+    },
+    tags: { name: 'create_quote', test_run_id: TEST_RUN_ID },
+  });
 
   const success = check(res, {
     'create_quote status is 200/201': (r) => r.status === 200 || r.status === 201,
@@ -155,12 +123,18 @@ export function createQuoteAndCalculatePremium(data) {
 
 // ============================================================================
 // Chức năng 2 — Chuyển đề nghị thành hợp đồng (Convert Quote to Policy)
-// POST /api/Policy (qua Gateway → PolicyService /api/Policies)
+// POST /api/Policy (PolicyService :5050)
 // ============================================================================
-export function convertQuoteToPolicy(data) {
-  const url = `${BASE_URL}/api/Policy`;
+export function convertQuoteToPolicy() {
+  const url = `${POLICY_URL}/api/Policy`;
 
-  const res = http.post(url, POLICY_PAYLOAD, authHeaders(data));
+  const res = http.post(url, POLICY_PAYLOAD, {
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Test-Run-Id': TEST_RUN_ID,
+    },
+    tags: { name: 'convert_policy', test_run_id: TEST_RUN_ID },
+  });
 
   const success = check(res, {
     'convert_policy status is 200/201': (r) => r.status === 200 || r.status === 201,
@@ -176,16 +150,16 @@ export function convertQuoteToPolicy(data) {
 
 // ============================================================================
 // Chức năng 3 — Tìm kiếm đề nghị/hợp đồng (Search Quotes & Policies)
-// GET /api/PolicySearch?q=... (qua Gateway → PolicySearchService /api/PolicySearch)
+// GET /api/PolicySearch?q=Nhat (PolicySearchService :5065)
 // ============================================================================
-export function searchQuotesAndPolicies(data) {
-  const url = `${BASE_URL}/api/PolicySearch?q=Nhat`;
+export function searchQuotesAndPolicies() {
+  const url = `${SEARCH_URL}/api/PolicySearch?q=Nhat`;
 
   const res = http.get(url, {
     headers: {
-      'Authorization': `Bearer ${data.token}`,
       'X-Test-Run-Id': TEST_RUN_ID,
     },
+    tags: { name: 'search', test_run_id: TEST_RUN_ID },
   });
 
   const success = check(res, {
@@ -206,7 +180,7 @@ export function searchQuotesAndPolicies(data) {
 export function teardown(data) {
   console.log(`\n================================================================`);
   console.log(`TEST RUN ID: ${TEST_RUN_ID}`);
-  console.log(`BASE URL: ${BASE_URL}`);
-  console.log(`AUTH URL: ${BASE_AUTH}`);
+  console.log(`POLICY URL: ${POLICY_URL}`);
+  console.log(`SEARCH URL: ${SEARCH_URL}`);
   console.log(`================================================================\n`);
 }
