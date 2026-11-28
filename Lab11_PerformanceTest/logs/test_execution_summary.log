@@ -1,0 +1,13 @@
+=== BẮT ĐẦU PHIÊN KIỂM THỬ HIỆU SUẤT - 2026-11-28 16:11:18 ===
+Kịch bản 01 | Run ID: RUN-2324801030042-SC01-VU001 | Chức năng: Tạo đề nghị và tính phí | VUs:   1 | p95: 0.034s (SLA: <=2.0s) | Error: 0.00% | Throughput:   6.97 req/s | Kết luận: Đạt
+Kịch bản 02 | Run ID: RUN-2324801030042-SC02-VU010 | Chức năng: Tạo đề nghị và tính phí | VUs:  10 | p95: 0.037s (SLA: <=2.0s) | Error: 0.00% | Throughput:  72.89 req/s | Kết luận: Đạt
+Kịch bản 03 | Run ID: RUN-2324801030042-SC03-VU050 | Chức năng: Tạo đề nghị và tính phí | VUs:  50 | p95: 0.047s (SLA: <=2.0s) | Error: 0.00% | Throughput: 327.44 req/s | Kết luận: Đạt
+Kịch bản 04 | Run ID: RUN-2324801030042-SC04-VU100 | Chức năng: Tạo đề nghị và tính phí | VUs: 100 | p95: 0.059s (SLA: <=2.0s) | Error: 0.00% | Throughput: 524.79 req/s | Kết luận: Đạt
+Kịch bản 05 | Run ID: RUN-2324801030042-SC05-VU001 | Chức năng: Chuyển đề nghị thành hợp đồng | VUs:   1 | p95: 0.050s (SLA: <=3.0s) | Error: 0.00% | Throughput:   6.76 req/s | Kết luận: Đạt
+Kịch bản 06 | Run ID: RUN-2324801030042-SC06-VU010 | Chức năng: Chuyển đề nghị thành hợp đồng | VUs:  10 | p95: 0.052s (SLA: <=3.0s) | Error: 0.00% | Throughput:  67.90 req/s | Kết luận: Đạt
+Kịch bản 07 | Run ID: RUN-2324801030042-SC07-VU050 | Chức năng: Chuyển đề nghị thành hợp đồng | VUs:  50 | p95: 0.064s (SLA: <=3.0s) | Error: 0.00% | Throughput: 300.49 req/s | Kết luận: Đạt
+Kịch bản 08 | Run ID: RUN-2324801030042-SC08-VU100 | Chức năng: Chuyển đề nghị thành hợp đồng | VUs: 100 | p95: 0.075s (SLA: <=3.0s) | Error: 0.00% | Throughput: 486.42 req/s | Kết luận: Đạt
+Kịch bản 09 | Run ID: RUN-2324801030042-SC09-VU001 | Chức năng: Tìm kiếm đề nghị/hợp đồng | VUs:   1 | p95: 0.040s (SLA: <=2.0s) | Error: 0.00% | Throughput:   7.42 req/s | Kết luận: Đạt
+Kịch bản 10 | Run ID: RUN-2324801030042-SC10-VU010 | Chức năng: Tìm kiếm đề nghị/hợp đồng | VUs:  10 | p95: 0.037s (SLA: <=2.0s) | Error: 0.00% | Throughput:  76.15 req/s | Kết luận: Đạt
+Kịch bản 11 | Run ID: RUN-2324801030042-SC11-VU050 | Chức năng: Tìm kiếm đề nghị/hợp đồng | VUs:  50 | p95: 0.042s (SLA: <=2.0s) | Error: 0.00% | Throughput: 341.84 req/s | Kết luận: Đạt
+Kịch bản 12 | Run ID: RUN-2324801030042-SC12-VU100 | Chức năng: Tìm kiếm đề nghị/hợp đồng | VUs: 100 | p95: 0.041s (SLA: <=2.0s) | Error: 0.00% | Throughput: 585.54 req/s | Kết luận: Đạt

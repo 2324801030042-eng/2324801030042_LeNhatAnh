@@ -482,3 +482,7 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Allow Lab 11 logs
+!Lab11_PerformanceTest/logs/*.log
+

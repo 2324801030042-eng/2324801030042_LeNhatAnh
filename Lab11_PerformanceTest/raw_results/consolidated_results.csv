@@ -1,0 +1,13 @@
+﻿STT,Chức năng,Mức tải (VUs),Test Run ID,p95 Response Time (giây),Error Rate (%),Throughput (req/s),Kết luận
+1,Tạo đề nghị và tính phí,1,RUN-2324801030042-SC01-VU001,0.034,0.00%,6.97,Đạt
+2,Tạo đề nghị và tính phí,10,RUN-2324801030042-SC02-VU010,0.037,0.00%,72.89,Đạt
+3,Tạo đề nghị và tính phí,50,RUN-2324801030042-SC03-VU050,0.047,0.00%,327.44,Đạt
+4,Tạo đề nghị và tính phí,100,RUN-2324801030042-SC04-VU100,0.059,0.00%,524.79,Đạt
+5,Chuyển đề nghị thành hợp đồng,1,RUN-2324801030042-SC05-VU001,0.050,0.00%,6.76,Đạt
+6,Chuyển đề nghị thành hợp đồng,10,RUN-2324801030042-SC06-VU010,0.052,0.00%,67.90,Đạt
+7,Chuyển đề nghị thành hợp đồng,50,RUN-2324801030042-SC07-VU050,0.064,0.00%,300.49,Đạt
+8,Chuyển đề nghị thành hợp đồng,100,RUN-2324801030042-SC08-VU100,0.075,0.00%,486.42,Đạt
+9,Tìm kiếm đề nghị/hợp đồng,1,RUN-2324801030042-SC09-VU001,0.040,0.00%,7.42,Đạt
+10,Tìm kiếm đề nghị/hợp đồng,10,RUN-2324801030042-SC10-VU010,0.037,0.00%,76.15,Đạt
+11,Tìm kiếm đề nghị/hợp đồng,50,RUN-2324801030042-SC11-VU050,0.042,0.00%,341.84,Đạt
+12,Tìm kiếm đề nghị/hợp đồng,100,RUN-2324801030042-SC12-VU100,0.041,0.00%,585.54,Đạt
